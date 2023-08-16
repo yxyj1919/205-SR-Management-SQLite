@@ -37,9 +37,9 @@ variables:
     #- docker build -t ${HARBOR_REGISTRY_IMAGE}/${CI_PROJECT_NAME}:${CI_COMMIT_TAG} .
     #- docker tag ${HARBOR_REGISTRY_IMAGE}/${CI_PROJECT_NAME}:${CI_COMMIT_TAG} ${HARBOR_REGISTRY_IMAGE}/${CI_PROJECT_NAME}:latest
     - docker build -t ${TAG_HARBOR_REGISTORY_REPO}:latest -t ${TAG_HARBOR_REGISTORY_REPO}:${CI_COMMIT_TAG} .
-    # 登录到harbor
+# 登录到harbor
     - docker login -u $HARBOR_USER -p $HARBOR_PASSWORD $HARBOR_URL
-    # 上传镜像
+# 上传镜像
     - docker push ${TAG_HARBOR_REGISTORY_REPO}:${CI_COMMIT_TAG}
     - docker push ${TAG_HARBOR_REGISTORY_REPO}:latest
   only:
@@ -52,14 +52,14 @@ variables:
   tags:
     - changw-runner
   script:
-    # $ID_RSA 是file，要去除group和other的权限
+# $ID_RSA 是file，要去除group和other的权限
     - chmod og= $ID_RSA
-    # 更新软件
+# 更新软件
     - apk update && apk add openssh-client
-    # 由于是public的仓库，因此不需要用户名登录
+# 由于是public的仓库，因此不需要用户名登录
     #- ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY"
     - ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker pull ${TAG_HARBOR_REGISTORY_REPO}:${CI_COMMIT_TAG}"
-    # 如果存在相同容器就进行删除
+# 如果存在相同容器就进行删除
     - ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker container rm -f flask-web || true"
     - ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker container rm -f flask-postgres || true"
 #方法1
