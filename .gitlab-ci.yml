@@ -1,0 +1,67 @@
+# 3个阶段
+stages:
+  - debug   # Debug 打印所有的变量
+  - publish # Docker build 准备镜像 上传镜像
+  - deploy  # 使用镜像部署新的容器
+ 
+# 全局变量，用于Jobs
+variables:
+  TAG_HARBOR_REGISTORY_REPO: ${HARBOR_REGISTRY_IMAGE}/${CI_PROJECT_NAME}
+ 
+# Jobs
+0-print-all-env-vars-job:
+  image: docker:latest
+  stage: debug
+  services:
+    - docker:dind
+  script:
+    - echo "GitLab CI/CD | Print all environment variables"
+    - env
+# 只在下述条件下触发
+  only:
+  #  - main
+    - tags
+ 
+1-build-docker-image-job:
+  image: docker:latest
+  stage: publish
+  services:
+    - docker:dind
+  script:
+    #- echo "VARIABLE CI_PROJECT_DIR IS ${CI_COMMIT_TAG_MESSAGE} and ${CI_COMMIT_TAG}!"
+    #- docker build -t ${HARBOR_REGISTRY_IMAGE}/${CI_PROJECT_NAME}:latest -t ${HARBOR_REGISTRY_IMAGE}/${CI_PROJECT_NAME}:${CI_COMMIT_TAG} .
+    #- docker build -t ${HARBOR_REGISTRY_IMAGE}/${CI_PROJECT_NAME}:${CI_COMMIT_TAG} .
+    #- docker tag ${HARBOR_REGISTRY_IMAGE}/${CI_PROJECT_NAME}:${CI_COMMIT_TAG} ${HARBOR_REGISTRY_IMAGE}/${CI_PROJECT_NAME}:latest
+    - docker build -t ${TAG_HARBOR_REGISTORY_REPO}:latest -t ${TAG_HARBOR_REGISTORY_REPO}:${CI_COMMIT_TAG} .
+    # 登录到harbor
+    - docker login -u $HARBOR_USER -p $HARBOR_PASSWORD $HARBOR_URL
+    # 上传镜像
+    - docker push ${TAG_HARBOR_REGISTORY_REPO}:${CI_COMMIT_TAG}
+    - docker push ${TAG_HARBOR_REGISTORY_REPO}:latest
+  only:
+  #  - main
+    - tags
+     
+2-deploy-container-job:
+  image: alpine:latest
+  stage: deploy
+  tags:
+    - deployment
+  script:
+    # $ID_RSA 是file，要去除group和other的权限
+    - chmod og= $ID_RSA
+    # 更新软件
+    - apk update && apk add openssh-client
+    # 由于是public的仓库，因此不需要用户名登录
+    #- ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY"
+    - ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker pull ${TAG_HARBOR_REGISTORY_REPO}:${CI_COMMIT_TAG}"
+    # 如果存在相同容器就进行删除
+    - ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker container rm -f my-app || true"
+    - ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker run -d -p 80:80 --name my-app ${TAG_HARBOR_REGISTORY_REPO}:${CI_COMMIT_TAG}"
+# 设置部署环境
+  environment:
+    name: production
+    url: http://192.168.10.32
+  only:
+  #  - main
+    - tags
