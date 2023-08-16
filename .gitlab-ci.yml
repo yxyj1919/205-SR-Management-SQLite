@@ -25,7 +25,8 @@ variables:
 # 只在下述条件下触发
   only:
   #  - main
-    - tags
+  #  - tags
+    - /^ara*$/
 
 # 创建Docker的Image 
 1-build-docker-image-job:
@@ -48,8 +49,8 @@ variables:
     - docker push ${TAG_HARBOR_REGISTORY_REPO}:latest
   only:
   #  - main
-    - tags
-
+  #  - tags
+    - /^ara-*$/
 # 部署容器     
 2-deploy-container-job:
   image: alpine:latest
