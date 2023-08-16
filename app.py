@@ -1,6 +1,9 @@
 import os
 import psycopg2
 from flask import Flask, render_template, request, url_for, redirect
+from init_db import PreCheckDB
+
+
 app = Flask(__name__)
 
 #DB_USERNAME='postgress'
@@ -16,6 +19,7 @@ def get_db_connection():
                             )
     return conn
 
+PreCheckDB(get_db_connection()).check()
 
 @app.route('/')
 def index():
@@ -94,4 +98,4 @@ def about():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, use_reloader=False)
