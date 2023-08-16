@@ -3,19 +3,16 @@ import psycopg2
 from flask import Flask, render_template, request, url_for, redirect
 from init_db import PreCheckDB
 
-
 app = Flask(__name__)
 
-#DB_USERNAME='postgress'
-#DB_PASSWORD='password'
 def get_db_connection():
-    conn = psycopg2.connect(host='10.117.203.153',
-                            port='9004',
-                            database='sr_db',
-                            #user=os.environ['DB_USERNAME'],
-                            #password=os.environ['DB_PASSWORD']
-                            user='postgres',
-                            password='password'
+    conn = psycopg2.connect(host=os.getenv('DB_SERVER'),
+                            port=os.getenv('DB_PORT'),
+                            database=os.getenv('DB_NAME'),
+                            user=os.getenv('DB_USERNAME'),
+                            password=os.getenv('DB_PASSWORD')
+                            #user='postgres',
+                            #password='password'
                             )
     return conn
 

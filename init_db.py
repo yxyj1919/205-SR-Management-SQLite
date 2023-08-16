@@ -1,6 +1,11 @@
 import os
 import psycopg2
 
+#DB=password
+#DB_USERNAME=postgress
+#DB_NAME=sr_db
+#DB_SERVER=postgres
+
 class PreCheckDB():
     def __init__(self, conn=None):
         self.conn = conn
