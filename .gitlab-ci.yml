@@ -14,6 +14,8 @@ variables:
   stage: debug
   services:
     - docker:dind
+  tags:
+    - changw-runner
   script:
     - echo "GitLab CI/CD | Print all environment variables"
     - env
@@ -27,6 +29,8 @@ variables:
   stage: publish
   services:
     - docker:dind
+  tags:
+    - changw-runner
   script:
     #- echo "VARIABLE CI_PROJECT_DIR IS ${CI_COMMIT_TAG_MESSAGE} and ${CI_COMMIT_TAG}!"
     #- docker build -t ${HARBOR_REGISTRY_IMAGE}/${CI_PROJECT_NAME}:latest -t ${HARBOR_REGISTRY_IMAGE}/${CI_PROJECT_NAME}:${CI_COMMIT_TAG} .
@@ -46,7 +50,7 @@ variables:
   image: alpine:latest
   stage: deploy
   tags:
-    - deployment
+    - changw-runner
   script:
     # $ID_RSA 是file，要去除group和other的权限
     - chmod og= $ID_RSA
