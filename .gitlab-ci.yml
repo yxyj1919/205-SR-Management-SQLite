@@ -1,7 +1,10 @@
+# https://meigit.readthedocs.io/en/latest/gitlab_ci_.gitlab-ci.yml_detail.html
 # 3个阶段
 stages:
   - debug   # Debug 打印所有的变量
-  - publish # Docker build 准备镜像 上传镜像
+  #- prepare # 准备工作
+  - build # Docker build 准备镜像 上传镜像
+  #- test # 测试工作
   - deploy  # 使用镜像部署新的容器
  
 # 全局变量，用于Jobs
@@ -27,7 +30,7 @@ variables:
 # 创建Docker的Image 
 1-build-docker-image-job:
   image: docker:latest
-  stage: publish
+  stage: build
   services:
     - docker:dind
   tags:
