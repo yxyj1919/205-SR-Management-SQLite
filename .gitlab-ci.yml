@@ -61,7 +61,7 @@ variables:
     - ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker pull ${TAG_HARBOR_REGISTORY_REPO}:${CI_COMMIT_TAG}"
     # 如果存在相同容器就进行删除
     - ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker container rm -f my-app || true"
-    - ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker run -d -p 80:500 --name my-app ${TAG_HARBOR_REGISTORY_REPO}:${CI_COMMIT_TAG}"
+    - ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker run -d -p 80:5000 --name my-app ${TAG_HARBOR_REGISTORY_REPO}:${CI_COMMIT_TAG}"
 # 设置部署环境
   environment:
     name: test-env
