@@ -27,7 +27,7 @@ variables:
   #  - main
   #  - tags
     - /^ara-.*$/
-
+    - /^vela-.*$/
 # 创建Docker的Image 
 1-build-docker-image-job:
   image: docker:latest
@@ -51,7 +51,7 @@ variables:
   #  - main
   #  - tags
     - /^ara-.*$/
-
+    - /^vela-.*$/
 # 部署容器     
 2-deploy-container-job:
   image: alpine:latest
