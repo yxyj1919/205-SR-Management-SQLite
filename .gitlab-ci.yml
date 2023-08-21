@@ -10,104 +10,111 @@ stages:
   #- test # 测试工作
   - deploy  # 使用镜像部署新的容器
  
-###################################################################
-# 设置全局变量
-###################################################################
-  
+#########################################################
+# 创建环境变量，包括
+# - 在K8s创建时候使用Namespace，Namespace需要系统管理员提前创建好
+# - TAG_HARBOR_REGISTORY_REPO是后期上传到harbor的路径的名称
+#########################################################  
 # 全局变量，用于Jobs
-variables:
+variables:  
   TAG_HARBOR_REGISTORY_REPO: ${HARBOR_REGISTRY_IMAGE}/${CI_PROJECT_NAME}
+  K8S_NAMESPACE: my-app-ns
+
  
-###################################################################
-# debug阶段 Job#打印所有变量
-###################################################################
-# 打印所有变量
-0-print-all-env-vars-job:
+#########################################################
+# Debug，为了打印出所有变量，可以忽略
+#########################################################
+# Jobs#
+1-print-all-env-vars-job:
   image: docker:latest
   stage: debug
   services:
     - docker:dind
-  tags:
-    - changw-runner
   script:
     - echo "GitLab CI/CD | Print all environment variables"
     - env
 # 只在下述条件下触发
-  only:
+#  only:
   #  - main
   #  - tags
 # 表示以 ara-开始的标签，例如ara-v1.0
-    - /^ara-.*$/
+    #- /^ara-.*$/
 # 表示以 vela-开始的标签，例如vela-v1.0
-    - /^vela-.*$/
+    #- /^vela-.*$/
  
-###################################################################
-# 阶段2 编译docker镜像
-###################################################################
-# 创建Docker的Image
-1-build-docker-image-job:
+#########################################################
+# Build Docker镜像
+# 包括4部分，登录Harbor，编辑Dockerfile，编译，上传
+#########################################################  
+2-build-docker-image-job:
   image: docker:latest
   stage: build
   services:
     - docker:dind
-  tags:
-    - changw-runner
-  script:
-    #- echo "VARIABLE CI_PROJECT_DIR IS ${CI_COMMIT_TAG_MESSAGE} and ${CI_COMMIT_TAG}!"
-    #- docker build -t ${HARBOR_REGISTRY_IMAGE}/${CI_PROJECT_NAME}:latest -t ${HARBOR_REGISTRY_IMAGE}/${CI_PROJECT_NAME}:${CI_COMMIT_TAG} .
-    #- docker build -t ${HARBOR_REGISTRY_IMAGE}/${CI_PROJECT_NAME}:${CI_COMMIT_TAG} .
-    #- docker tag ${HARBOR_REGISTRY_IMAGE}/${CI_PROJECT_NAME}:${CI_COMMIT_TAG} ${HARBOR_REGISTRY_IMAGE}/${CI_PROJECT_NAME}:latest
-    - docker build -t ${TAG_HARBOR_REGISTORY_REPO}:latest -t ${TAG_HARBOR_REGISTORY_REPO}:${CI_COMMIT_TAG} .
+  before_script:
 # 登录到harbor
     - docker login -u $HARBOR_USER -p $HARBOR_PASSWORD $HARBOR_URL
+  script:
+# 修改Dockerfile
+    - sed -i 's/___name___/'"${CI_PROJECT_TITLE}"'/g' Dockerfile   
+    - sed -i 's/___version___/'"${CI_COMMIT_TAG}"'/g' Dockerfile
+# Build Docker Image
+    - docker build -t ${TAG_HARBOR_REGISTORY_REPO}:latest -t ${TAG_HARBOR_REGISTORY_REPO}:${CI_COMMIT_TAG} .
 # 上传镜像
     - docker push ${TAG_HARBOR_REGISTORY_REPO}:${CI_COMMIT_TAG}
     - docker push ${TAG_HARBOR_REGISTORY_REPO}:latest
-  only:
-  #  - main
-  #  - tags
-    - /^ara-.*$/
-    - /^vela-.*$/
+  #only:
+    #- main
+    #- tags 
+    #- /^ara-.*$/
+    #- /^vela-.*$/
  
-###################################################################
-# 部署容器
-# 根据不同的标签，部署在不同的环境
-###################################################################    
-2-deploy-container-job:
-  image: alpine:latest
+#########################################################
+# 把APP部署在K8S集群上
+# 其中before_script的内容就把kubeconfig的变量导入到操作环境中
+#########################################################
+# Deploy the APP on K8s
+4-deploy-container-on-k8s-job:
+  image: aliartiza75/kubectl:0.0.2
   stage: deploy
-  tags:
-    - changw-runner
+#  tags:
+#    - dev-env-runner
+# COPY KUBECONFIG 
+  before_script:
+    - mkdir ~/.kube/
+    - echo $KUBECONFIG | base64 -d > config
+    - mv config ~/.kube/
   script:
-# $ID_RSA 是file，要去除group和other的权限
-    - chmod og= $ID_RSA
-# 更新软件
-    - apk update && apk add openssh-client
-# 由于是public的仓库，因此不需要用户名登录
-    #- ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY"
-    - ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker pull ${TAG_HARBOR_REGISTORY_REPO}:${CI_COMMIT_TAG}"
-# 如果存在相同容器就进行删除
-    - ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker container rm -f flask-web || true"
-    - ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker container rm -f flask-postgres || true"
- 
-#方法1: 默认两个容器在不同的网络，因此容器A无法直接访问容器B，那么容器A需要监听容器B在主机层暴露的端口，达到通信的目的
-#由于需要在目标主机上部署容器，因此需要在之前的配置SSH免密登录
-    #- ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker run -d -p 5432:5432 --name postgres --hostname postgres -e POSTGRES_PASSWORD=password -e  POSTGRES_DB=sr_db  postgres"
-    #- ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "sleep 10"
-    #- ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker run -d -p 80:5000 -e DB_SERVER=$SERVER_IP --name flask-app ${TAG_HARBOR_REGISTORY_REPO}:${CI_COMMIT_TAG}"
- 
-# 方法2: 把两个容器放在同一个网络里，这样可以直接通过hostname解析
-# 如果存在相同的docker网络就进行删除
-    - ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker network rm -f flask-app-network || true"
-    - ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker network create flask-app-network"
-# 创建容器是的时候指定网络
-    - ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker run -d --network flask-app-network --name flask-postgres --hostname postgres -e POSTGRES_PASSWORD=password -e  POSTGRES_DB=sr_db postgres"
-    - ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "sleep 10"
-    - ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker run -d -p 80:5000 --network flask-app-network  --name flask-web ${TAG_HARBOR_REGISTORY_REPO}:${CI_COMMIT_TAG}"
-# 设置部署环境，如果TAG是ara-开头，就部署在这个环境上
-  environment:
-    name: test-env
-    url: http://10.117.203.155
+# 配置时间变量
+     - seconds=$(date +%s)
+     - seconds_new=$(expr $seconds + 28800)
+     - date_new=$(date -d @$seconds_new +%Y-%m-%d_%H:%M:%S)
+    # - echo ${TAG_HARBOR_REGISTORY_REPO}:latest
+# Modify Deployment YMAL file
+     - sed -i 's/___deployment_name___/'"${CI_PROJECT_TITLE}"'-deployment/g' manifests/Deployment.yaml 
+     - sed -i 's/___project___/'"${CI_PROJECT_TITLE}"'/g' manifests/Deployment.yaml 
+     - sed -i 's/___date___/'$date_new'/g' manifests/Deployment.yaml
+     - sed -i 's/___version___/'"${CI_COMMIT_TAG}"'/g' manifests/Deployment.yaml
+     - sed -i 's/___author___/Chang\ WANG/g' manifests/Deployment.yaml
+# 由于替换的内容包含"/"，因此这里使用"|"
+     - sed -i 's|___image___|'"${TAG_HARBOR_REGISTORY_REPO}"':latest|g' manifests/Deployment.yaml
+    # - cat manifests/Deployment.yaml|grep -E 'image|version|author|date|project|name'
+# Modify Server YMAL file
+     - sed -i 's/___service_name___/'"${CI_PROJECT_TITLE}"'-service/g' manifests/Service.yaml 
+     - sed -i 's/___project___/'"${CI_PROJECT_TITLE}"'/g' manifests/Service.yaml 
+     - sed -i 's/___date___/'$date_new'/g' manifests/Service.yaml
+     - sed -i 's/___version___/'"${CI_COMMIT_TAG}"'/g' manifests/Service.yaml
+     - sed -i 's/___author___/Chang\ WANG/g' manifests/Service.yaml
+# NS需要提前准备好，因此这次不需要创建NS
+     #- kubectl create ns ${K8S_NAMESPACE}
+# Deploy the Deployment
+     - kubectl apply -f manifests/Deployment.yaml -n ${K8S_NAMESPACE}
+     - kubectl annotate deployment ${CI_PROJECT_TITLE}-deployment kubernetes.io/change-cause="Update ${CI_COMMIT_TAG}" -n ${K8S_NAMESPACE}
+# Deploy the Service 
+     - kubectl apply -f manifests/Service.yaml -n ${K8S_NAMESPACE}
+# Check Status
+    # - kubectl get namespaces
+     - kubectl get all -n ${K8S_NAMESPACE}
   only:
   #  - main
   #  - tags
