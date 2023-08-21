@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ___service_name___
+  #namespace: ara-gss-chn-sts
+  annotations:
+    project: ___project___
+    date: ___date___
+    version: ___version___
+    author: ___author___
+  labels:
+    version: v1
+    app: nginx
+spec:
+  selector:
+    app: nginx
+  type: ClusterIP
+  ports:
+  - name: tcp-80-7001
+    protocol: TCP
+    port: 80
+    targetPort: 7001
