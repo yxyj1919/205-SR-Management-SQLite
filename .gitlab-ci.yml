@@ -33,6 +33,8 @@ variables:
   script:
     - echo "GitLab CI/CD | Print all environment variables"
     - env
+  tags:
+    - changw-runner
 # 只在下述条件下触发
 #  only:
   #  - main
@@ -51,6 +53,8 @@ variables:
   stage: build
   services:
     - docker:dind
+  tags:
+    - changw-runner
   before_script:
 # 登录到harbor
     - docker login -u $HARBOR_USER -p $HARBOR_PASSWORD $HARBOR_URL
@@ -77,8 +81,8 @@ variables:
 4-deploy-container-on-k8s-job:
   image: aliartiza75/kubectl:0.0.2
   stage: deploy
-#  tags:
-#    - dev-env-runner
+  tags:
+    - changw-runner
 # COPY KUBECONFIG 
   before_script:
     - mkdir ~/.kube/
