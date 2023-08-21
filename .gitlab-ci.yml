@@ -1,5 +1,8 @@
+###################################################################
 # https://meigit.readthedocs.io/en/latest/gitlab_ci_.gitlab-ci.yml_detail.html
 # 3个阶段
+###################################################################
+ 
 stages:
   - debug   # Debug 打印所有的变量
   #- prepare # 准备工作
@@ -7,10 +10,17 @@ stages:
   #- test # 测试工作
   - deploy  # 使用镜像部署新的容器
  
+###################################################################
+# 设置全局变量
+###################################################################
+  
 # 全局变量，用于Jobs
 variables:
   TAG_HARBOR_REGISTORY_REPO: ${HARBOR_REGISTRY_IMAGE}/${CI_PROJECT_NAME}
  
+###################################################################
+# debug阶段 Job#打印所有变量
+###################################################################
 # 打印所有变量
 0-print-all-env-vars-job:
   image: docker:latest
@@ -26,9 +36,15 @@ variables:
   only:
   #  - main
   #  - tags
+# 表示以 ara-开始的标签，例如ara-v1.0
     - /^ara-.*$/
+# 表示以 vela-开始的标签，例如vela-v1.0
     - /^vela-.*$/
-# 创建Docker的Image 
+ 
+###################################################################
+# 阶段2 编译docker镜像
+###################################################################
+# 创建Docker的Image
 1-build-docker-image-job:
   image: docker:latest
   stage: build
@@ -52,7 +68,11 @@ variables:
   #  - tags
     - /^ara-.*$/
     - /^vela-.*$/
-# 部署容器     
+ 
+###################################################################
+# 部署容器
+# 根据不同的标签，部署在不同的环境
+###################################################################    
 2-deploy-container-job:
   image: alpine:latest
   stage: deploy
@@ -69,23 +89,27 @@ variables:
 # 如果存在相同容器就进行删除
     - ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker container rm -f flask-web || true"
     - ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker container rm -f flask-postgres || true"
-#方法1
+ 
+#方法1: 默认两个容器在不同的网络，因此容器A无法直接访问容器B，那么容器A需要监听容器B在主机层暴露的端口，达到通信的目的
+#由于需要在目标主机上部署容器，因此需要在之前的配置SSH免密登录
     #- ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker run -d -p 5432:5432 --name postgres --hostname postgres -e POSTGRES_PASSWORD=password -e  POSTGRES_DB=sr_db  postgres"
     #- ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "sleep 10"
     #- ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker run -d -p 80:5000 -e DB_SERVER=$SERVER_IP --name flask-app ${TAG_HARBOR_REGISTORY_REPO}:${CI_COMMIT_TAG}"
-# 方法2
+ 
+# 方法2: 把两个容器放在同一个网络里，这样可以直接通过hostname解析
 # 如果存在相同的docker网络就进行删除
     - ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker network rm -f flask-app-network || true"
     - ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker network create flask-app-network"
 # 创建容器是的时候指定网络
-    - ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker run -d --network flask-app-network --name flask-postgres --hostname postgres -e POSTGRES_PASSWORD=password -e  POSTGRES_DB=sr_db  postgres"
+    - ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker run -d --network flask-app-network --name flask-postgres --hostname postgres -e POSTGRES_PASSWORD=password -e  POSTGRES_DB=sr_db postgres"
     - ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "sleep 10"
     - ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker run -d -p 80:5000 --network flask-app-network  --name flask-web ${TAG_HARBOR_REGISTORY_REPO}:${CI_COMMIT_TAG}"
-# 设置部署环境
+# 设置部署环境，如果TAG是ara-开头，就部署在这个环境上
   environment:
     name: test-env
     url: http://10.117.203.155
   only:
   #  - main
   #  - tags
+# 如果TAG是ara-开头，就触发动作
     - /^ara-.*$/
