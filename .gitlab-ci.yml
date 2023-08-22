@@ -36,9 +36,9 @@ variables:
   tags:
     - changw-runner
 # 只在下述条件下触发
-#  only:
+  only:
   #  - main
-  #  - tags
+    - tags
 # 表示以 ara-开始的标签，例如ara-v1.0
     #- /^ara-.*$/
 # 表示以 vela-开始的标签，例如vela-v1.0
@@ -63,13 +63,15 @@ variables:
     - sed -i 's/___name___/'"${CI_PROJECT_TITLE}"'/g' Dockerfile   
     - sed -i 's/___version___/'"${CI_COMMIT_TAG}"'/g' Dockerfile
 # Build Docker Image
-    - docker build -t ${TAG_HARBOR_REGISTORY_REPO}:latest -t ${TAG_HARBOR_REGISTORY_REPO}:${CI_COMMIT_TAG} .
+    - docker build -t ${TAG_HARBOR_REGISTORY_REPO}:latest .
+    - docker tag ${TAG_HARBOR_REGISTORY_REPO}:latest ${TAG_HARBOR_REGISTORY_REPO}:${CI_COMMIT_TAG}
+
 # 上传镜像
     - docker push ${TAG_HARBOR_REGISTORY_REPO}:${CI_COMMIT_TAG}
     - docker push ${TAG_HARBOR_REGISTORY_REPO}:latest
-  #only:
+  only:
     #- main
-    #- tags 
+    - tags 
     #- /^ara-.*$/
     #- /^vela-.*$/
  
@@ -121,6 +123,6 @@ variables:
      - kubectl get all -n ${K8S_NAMESPACE}
   only:
   #  - main
-  #  - tags
+    - tags
 # 如果TAG是ara-开头，就触发动作
-    - /^ara-.*$/
+  #  - /^ara-.*$/
