@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
       - name: postgres
-        image: postgres:latest
+        image: gscn-harbor.eng.vmware.com/changw/postgres:latest
         ports:
         - containerPort: 5432
         envFrom:
