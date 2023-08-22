@@ -38,9 +38,9 @@ variables:
 # 只在下述条件下触发
   only:
   #  - main
-    - tags
+    #- tags
 # 表示以 ara-开始的标签，例如ara-v1.0
-    #- /^ara-.*$/
+    - /^ara-.*$/
 # 表示以 vela-开始的标签，例如vela-v1.0
     #- /^vela-.*$/
  
