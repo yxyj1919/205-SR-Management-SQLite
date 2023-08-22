@@ -24,8 +24,18 @@ spec:
         image: postgres:latest
         ports:
         - containerPort: 5432
+        envFrom:
+        - configMapRef:
+            name: postgres-config
         imagePullPolicy: IfNotPresent
         resources:
             limits:
               memory: "2Gi"
               cpu: "1000m"
+        volumeMounts:
+          - mountPath: /var/lib/postgresql/data
+            name: postgredb
+      volumes:
+        - name: postgredb
+          persistentVolumeClaim:
+            claimName: postgres-pv-claim
