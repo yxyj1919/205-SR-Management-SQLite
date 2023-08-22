@@ -34,8 +34,8 @@ spec:
               cpu: "1000m"
         volumeMounts:
           - mountPath: /var/lib/postgresql/data
-            name: postgredb
+            name: postgres-data
       volumes:
-        - name: postgredb
+        - name: postgres-data
           persistentVolumeClaim:
-            claimName: postgres-pv-claim
+            claimName: postgres-pvc
