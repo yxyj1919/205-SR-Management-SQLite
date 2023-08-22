@@ -90,8 +90,8 @@ variables:
     - mkdir ~/.kube/
     - echo $KUBECONFIG| base64 -d > config
     - mv config ~/.kube/
-    - cat ~/.kube/config
-    - find ~ -name config
+  #  - cat ~/.kube/config
+  #  - find ~ -name config
   script:
 # 配置时间变量
      - seconds=$(date +%s)
@@ -117,15 +117,15 @@ variables:
      #- kubectl create ns ${K8S_NAMESPACE}
 # Deploy the Deployment
      - kubectl --kubeconfig=/root/.kube/config get pod
-     #- kubectl apply -f manifests/Deployment.yaml -n ${K8S_NAMESPACE}
-     #- kubectl apply -f manifests/Deployment.yaml
-     #- kubectl annotate deployment ${CI_PROJECT_TITLE}-deployment kubernetes.io/change-cause="Update ${CI_COMMIT_TAG}"
+     #- kubectl --kubeconfig=/root/.kube/config apply -f manifests/Deployment.yaml -n ${K8S_NAMESPACE}
+     - kubectl --kubeconfig=/root/.kube/config apply -f manifests/Deployment.yaml
+     - kubectl --kubeconfig=/root/.kube/config annotate deployment ${CI_PROJECT_TITLE}-deployment kubernetes.io/change-cause="Update ${CI_COMMIT_TAG}"
 # Deploy the Service 
-     #- kubectl apply -f manifests/Service.yaml
+     - kubectl --kubeconfig=/root/.kube/config apply -f manifests/Service.yaml
 # Check Status
-    # - kubectl get namespaces
+     - kubectl --kubeconfig=/root/.kube/config get namespaces
     # - kubectl get all -n ${K8S_NAMESPACE}
-     #- kubectl get all
+     - kubectl --kubeconfig=/root/.kube/config get all
 
   only:
   #  - main
