@@ -110,7 +110,7 @@ variables:
      - sed -i 's/___version___/'"${CI_COMMIT_TAG}"'/g' manifests/Service-postgres.yaml
      - sed -i 's/___author___/Chang\ WANG/g' manifests/Service-postgres.yaml
 # Modify Web Deployment YMAL file
-     - sed -i 's/___deployment_name___/'"${CI_PROJECT_TITLE}"'-deployment/g' manifests/Deployment.yaml 
+     - sed -i 's/___deployment_name___/'"${CI_PROJECT_TITLE}"'-web-deployment/g' manifests/Deployment.yaml 
      - sed -i 's/___project___/'"${CI_PROJECT_TITLE}"'/g' manifests/Deployment.yaml 
      - sed -i 's/___date___/'$date_new'/g' manifests/Deployment.yaml
      - sed -i 's/___version___/'"${CI_COMMIT_TAG}"'/g' manifests/Deployment.yaml
