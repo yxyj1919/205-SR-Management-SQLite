@@ -91,6 +91,7 @@ variables:
     - echo $KUBECONFIG| base64 -d > config
     - mv config ~/.kube/
     - cat ~/.kube/config
+    - find ~ -name config
   script:
 # 配置时间变量
      - seconds=$(date +%s)
