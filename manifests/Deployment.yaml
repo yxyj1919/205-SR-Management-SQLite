@@ -24,3 +24,8 @@ spec:
         image: ___image___
         ports:
         - containerPort: 80
+        imagePullPolicy: IfNotPresent
+        resources:
+            limits:
+              memory: "2Gi"
+              cpu: "1000m"
