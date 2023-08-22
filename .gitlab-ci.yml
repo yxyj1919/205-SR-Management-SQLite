@@ -97,7 +97,19 @@ variables:
      - seconds_new=$(expr $seconds + 28800)
      - date_new=$(date -d @$seconds_new +%Y-%m-%d_%H:%M:%S)
     # - echo ${TAG_HARBOR_REGISTORY_REPO}:latest
-# Modify Deployment YMAL file
+# Modify Postgres Deployment YMAL file
+     - sed -i 's/___deployment_name___/'"${CI_PROJECT_TITLE}"'-postgres-deployment/g' manifests/Deployment-postgres.yaml 
+     - sed -i 's/___project___/'"${CI_PROJECT_TITLE}"'/g' manifests/Deployment-postgres.yaml 
+     - sed -i 's/___date___/'$date_new'/g' manifests/Deployment-postgres.yaml
+     - sed -i 's/___version___/'"${CI_COMMIT_TAG}"'/g' manifests/Deployment-postgres.yaml
+     - sed -i 's/___author___/Chang\ WANG/g' manifests/Deployment-postgres.yaml
+# Modify Postgres Service YMAL file
+     - sed -i 's/___service_name___/'"${CI_PROJECT_TITLE}"'-postgres-svc/g' manifests/Service-postgres.yaml 
+     - sed -i 's/___project___/'"${CI_PROJECT_TITLE}"'/g' manifests/Service-postgres.yaml 
+     - sed -i 's/___date___/'$date_new'/g' manifests/Service-postgres.yaml
+     - sed -i 's/___version___/'"${CI_COMMIT_TAG}"'/g' manifests/Service-postgres.yaml
+     - sed -i 's/___author___/Chang\ WANG/g' manifests/Service-postgres.yaml
+# Modify Web Deployment YMAL file
      - sed -i 's/___deployment_name___/'"${CI_PROJECT_TITLE}"'-deployment/g' manifests/Deployment.yaml 
      - sed -i 's/___project___/'"${CI_PROJECT_TITLE}"'/g' manifests/Deployment.yaml 
      - sed -i 's/___date___/'$date_new'/g' manifests/Deployment.yaml
@@ -106,7 +118,7 @@ variables:
 # 由于替换的内容包含"/"，因此这里使用"|"
      - sed -i 's|___image___|'"${TAG_HARBOR_REGISTORY_REPO}"':latest|g' manifests/Deployment.yaml
     # - cat manifests/Deployment.yaml|grep -E 'image|version|author|date|project|name'
-# Modify Server YMAL file
+# Modify Service YMAL file
      - sed -i 's/___service_name___/'"${CI_PROJECT_TITLE}"'-service/g' manifests/Service.yaml 
      - sed -i 's/___project___/'"${CI_PROJECT_TITLE}"'/g' manifests/Service.yaml 
      - sed -i 's/___date___/'$date_new'/g' manifests/Service.yaml
@@ -114,11 +126,20 @@ variables:
      - sed -i 's/___author___/Chang\ WANG/g' manifests/Service.yaml
 # NS需要管理员提前准备好，因此这里不需要创建NS
      #- kubectl create ns ${K8S_NAMESPACE}
-# Deploy the Deployment
+
+# 1 Deloy Postgres PVC
+     - kubectl --kubeconfig=/root/.kube/config apply -f manifests/PVC-postgres.yaml
+# 2 Deploy Postgres ConfigMap
+     - kubectl --kubeconfig=/root/.kube/config apply -f manifests/Config-postgres.yaml
+# 3 Deploy Postgres Service
+     - kubectl --kubeconfig=/root/.kube/config apply -f manifests/Service-postgres.yaml
+# 4 Deploy Postgres Deployment
+     - kubectl --kubeconfig=/root/.kube/config apply -f manifests/Deployment-postgres.yaml
+# 5 Deploy the Web Deployment
      #- kubectl --kubeconfig=/root/.kube/config apply -f manifests/Deployment.yaml -n ${K8S_NAMESPACE}
      - kubectl --kubeconfig=/root/.kube/config apply -f manifests/Deployment.yaml
      - kubectl --kubeconfig=/root/.kube/config annotate deployment ${CI_PROJECT_TITLE}-deployment kubernetes.io/change-cause="Update ${CI_COMMIT_TAG}"
-# Deploy the Service 
+# 6 Deploy the Service 
      - kubectl --kubeconfig=/root/.kube/config apply -f manifests/Service.yaml
 # Check Status
     # - kubectl get all -n ${K8S_NAMESPACE}
