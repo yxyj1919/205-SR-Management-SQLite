@@ -116,6 +116,7 @@ variables:
 # NS需要提前准备好，因此这次不需要创建NS
      #- kubectl create ns ${K8S_NAMESPACE}
 # Deploy the Deployment
+     - kubectl config get pod
      - kubectl --kubeconfig=/root/.kube/config get pod
      #- kubectl --kubeconfig=/root/.kube/config apply -f manifests/Deployment.yaml -n ${K8S_NAMESPACE}
      - kubectl --kubeconfig=/root/.kube/config apply -f manifests/Deployment.yaml
