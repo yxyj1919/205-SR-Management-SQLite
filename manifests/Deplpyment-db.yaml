@@ -8,19 +8,24 @@ metadata:
     version: ___version___
     author: ___author___
   labels:
-    app: nginx
+    app: postgres
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: nginx
+      app: postgres
   template:
     metadata:
       labels:
-        app: nginx
+        app: postgres
     spec:
       containers:
-      - name: nginx
-        image: ___image___
+      - name: postgres
+        image: postgres:latest
         ports:
         - containerPort: 5432
+        imagePullPolicy: IfNotPresent
+        resources:
+            limits:
+              memory: "2Gi"
+              cpu: "1000m"
