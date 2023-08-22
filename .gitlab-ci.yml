@@ -114,15 +114,16 @@ variables:
 # NS需要提前准备好，因此这次不需要创建NS
      #- kubectl create ns ${K8S_NAMESPACE}
 # Deploy the Deployment
+     - kubectl get pod
      #- kubectl apply -f manifests/Deployment.yaml -n ${K8S_NAMESPACE}
-     - kubectl apply -f manifests/Deployment.yaml
-     - kubectl annotate deployment ${CI_PROJECT_TITLE}-deployment kubernetes.io/change-cause="Update ${CI_COMMIT_TAG}"
+     #- kubectl apply -f manifests/Deployment.yaml
+     #- kubectl annotate deployment ${CI_PROJECT_TITLE}-deployment kubernetes.io/change-cause="Update ${CI_COMMIT_TAG}"
 # Deploy the Service 
-     - kubectl apply -f manifests/Service.yaml
+     #- kubectl apply -f manifests/Service.yaml
 # Check Status
     # - kubectl get namespaces
     # - kubectl get all -n ${K8S_NAMESPACE}
-     - kubectl get all
+     #- kubectl get all
 
   only:
   #  - main
