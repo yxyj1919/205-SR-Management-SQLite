@@ -113,7 +113,7 @@ variables:
      - sed -i 's/___date___/'$date_new'/g' manifests/Service.yaml
      - sed -i 's/___version___/'"${CI_COMMIT_TAG}"'/g' manifests/Service.yaml
      - sed -i 's/___author___/Chang\ WANG/g' manifests/Service.yaml
-# NS需要提前准备好，因此这次不需要创建NS
+# NS需要管理员提前准备好，因此这里不需要创建NS
      #- kubectl create ns ${K8S_NAMESPACE}
 # Deploy the Deployment
      #- kubectl --kubeconfig=/root/.kube/config apply -f manifests/Deployment.yaml -n ${K8S_NAMESPACE}
