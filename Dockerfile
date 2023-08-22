@@ -44,7 +44,7 @@ RUN pip3 install --requirement  /python-docker/requirements.txt
 COPY . .
 
 # Set ENV
-ENV DB_SERVER='postgres' \
+ENV DB_SERVER='my-flask-app-postgres-svc.ara-gss-chn-devops.svc.cluster.local' \
     DB_PORT='5432' \
     DB_NAME='sr_db' \
     DB_USERNAME='postgres' \
