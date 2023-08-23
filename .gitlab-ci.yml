@@ -119,14 +119,14 @@ variables:
      - sed -i 's|___image___|'"${TAG_HARBOR_REGISTORY_REPO}"':latest|g' manifests/Deployment.yaml
     # - cat manifests/Deployment.yaml|grep -E 'image|version|author|date|project|name'
 # Modify Service YMAL file
-     - sed -i 's/___service_name___/'"${CI_PROJECT_TITLE}"'-service/g' manifests/Service.yaml 
+     - sed -i 's/___service_name___/'"${CI_PROJECT_TITLE}"'-svc/g' manifests/Service.yaml 
      - sed -i 's/___project___/'"${CI_PROJECT_TITLE}"'/g' manifests/Service.yaml 
      - sed -i 's/___date___/'$date_new'/g' manifests/Service.yaml
      - sed -i 's/___version___/'"${CI_COMMIT_TAG}"'/g' manifests/Service.yaml
      - sed -i 's/___author___/Chang\ WANG/g' manifests/Service.yaml
 # Modify Ingress YMAL file
      - sed -i 's/___ingress_name___/'"${CI_PROJECT_TITLE}"'-ingress/g' manifests/Ingress.yaml 
-     - sed -i 's/___service_name___/'"${CI_PROJECT_TITLE}"'-service/g' manifests/Ingress.yaml 
+     - sed -i 's/___service_name___/'"${CI_PROJECT_TITLE}"'-svc/g' manifests/Ingress.yaml 
      - sed -i 's/___project___/'"${CI_PROJECT_TITLE}"'/g' manifests/Ingress.yaml 
      - sed -i 's/___date___/'$date_new'/g' manifests/Service.yaml
      - sed -i 's/___version___/'"${CI_COMMIT_TAG}"'/g' manifests/Ingress.yaml
