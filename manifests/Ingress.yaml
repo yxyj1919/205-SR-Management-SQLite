@@ -9,7 +9,6 @@ metadata:
     author: ___author___
   labels:
     app: web
-  name: sts-web-ingress
 spec:
   ingressClassName: avi-lb
   rules:
