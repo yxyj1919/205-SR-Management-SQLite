@@ -158,7 +158,7 @@ variables:
 # 7 Deploy the Igress 
      - kubectl --kubeconfig=/root/.kube/config apply -f manifests/Ingress.yaml
 # 8 Deploy the HostRule 
-     - kubectl --kubeconfig=/root/.kube/config apply -f manifests/Ingress.yaml
+     - kubectl --kubeconfig=/root/.kube/config apply -f manifests/Hostrule.yaml
 # Check Status
     # - kubectl get all -n ${K8S_NAMESPACE}
      - kubectl --kubeconfig=/root/.kube/config get all
