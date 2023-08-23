@@ -124,6 +124,20 @@ variables:
      - sed -i 's/___date___/'$date_new'/g' manifests/Service.yaml
      - sed -i 's/___version___/'"${CI_COMMIT_TAG}"'/g' manifests/Service.yaml
      - sed -i 's/___author___/Chang\ WANG/g' manifests/Service.yaml
+# Modify Ingress YMAL file
+     - sed -i 's/___ingress_name___/'"${CI_PROJECT_TITLE}"'-ingress/g' manifests/Ingress.yaml 
+     - sed -i 's/___service_name___/'"${CI_PROJECT_TITLE}"'-service/g' manifests/Ingress.yaml 
+     - sed -i 's/___project___/'"${CI_PROJECT_TITLE}"'/g' manifests/Ingress.yaml 
+     - sed -i 's/___date___/'$date_new'/g' manifests/Service.yaml
+     - sed -i 's/___version___/'"${CI_COMMIT_TAG}"'/g' manifests/Ingress.yaml
+     - sed -i 's/___author___/Chang\ WANG/g' manifests/Ingress.yaml
+# Modify HostRule YMAL file
+     - sed -i 's/___hostrule_name___/'"${CI_PROJECT_TITLE}"'-hostrule/g' manifests/Hostrule.yaml 
+     - sed -i 's/___project___/'"${CI_PROJECT_TITLE}"'/g' manifests/Hostrule.yaml 
+     - sed -i 's/___date___/'$date_new'/g' manifests/Hostrule.yaml
+     - sed -i 's/___version___/'"${CI_COMMIT_TAG}"'/g' manifests/Hostrule.yaml
+     - sed -i 's/___author___/Chang\ WANG/g' manifests/Hostrule.yaml
+
 # NS需要管理员提前准备好，因此这里不需要创建NS
      #- kubectl create ns ${K8S_NAMESPACE}
 
@@ -141,6 +155,10 @@ variables:
      - kubectl --kubeconfig=/root/.kube/config annotate deployment ${CI_PROJECT_TITLE}-web-deployment kubernetes.io/change-cause="Update ${CI_COMMIT_TAG}"
 # 6 Deploy the Service 
      - kubectl --kubeconfig=/root/.kube/config apply -f manifests/Service.yaml
+# 7 Deploy the Igress 
+     - kubectl --kubeconfig=/root/.kube/config apply -f manifests/Ingress.yaml
+# 8 Deploy the HostRule 
+     - kubectl --kubeconfig=/root/.kube/config apply -f manifests/Ingress.yaml
 # Check Status
     # - kubectl get all -n ${K8S_NAMESPACE}
      - kubectl --kubeconfig=/root/.kube/config get all
