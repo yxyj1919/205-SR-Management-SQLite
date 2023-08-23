@@ -16,7 +16,7 @@ spec:
     app: nginx
   type: ClusterIP
   ports:
-  - name: tcp-80-7001
+  - name: tcp-5000-80
     protocol: TCP
-    port: 80
-    targetPort: 7001
+    port: 5000
+    targetPort: 80
