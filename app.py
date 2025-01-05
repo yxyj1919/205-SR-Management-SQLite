@@ -6,15 +6,18 @@ from init_db import PreCheckDB
 app = Flask(__name__)
 
 def get_db_connection():
-    conn = psycopg2.connect(host=os.getenv('DB_SERVER'),
-                            port=os.getenv('DB_PORT'),
-                            database=os.getenv('DB_NAME'),
-                            user=os.getenv('DB_USERNAME'),
-                            password=os.getenv('DB_PASSWORD')
-                            #user='postgres',
-                            #password='password'
-                            )
-    return conn
+    try:
+        conn = psycopg2.connect(
+            host=os.getenv('DB_SERVER'),
+            port=os.getenv('DB_PORT'),
+            database=os.getenv('DB_NAME'),
+            user=os.getenv('DB_USERNAME'),
+            password=os.getenv('DB_PASSWORD')
+        )
+        return conn
+    except psycopg2.Error as e:
+        print(f"数据库连接错误: {e}")
+        raise
 
 PreCheckDB(get_db_connection()).check()
 
@@ -49,14 +52,15 @@ def create():
 
 @app.route("/delete/<int:id>")
 def delete(id):
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("DELETE from srtable where id="+str(id))
-    conn.commit()
-    cur.close()
-    conn.close()
-    return render_template("delete.html")
-    #return redirect(url_for('index'))
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("DELETE from srtable where id=%s", (id,))
+                conn.commit()
+        return redirect(url_for('index'))
+    except Exception as e:
+        print(f"删除记录时发生错误: {e}")
+        return render_template("error.html", error=str(e))
 
 @app.route("/modify/<int:id>")
 def modify(id):
