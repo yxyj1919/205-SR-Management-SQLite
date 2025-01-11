@@ -1,39 +1,35 @@
 {% extends 'base.html' %}
 
+{% block title %}新建SR{% endblock %}
+
 {% block content %}
-    <h1>{% block title %} Add a New SR {% endblock %}</h1>
-    <form method="post">
-        <p>
-            <label for="sr_number">SR Number</label>
-            <input type="text" name="sr_number"
-                   placeholder="SR Number">
-            </input>
-        </p>
-
-        <p>
-            <label for="sr_owner">SR Owner</label>
-            <input type="text" name="sr_owner"
-                   placeholder="SR Owner">
-            </input>
-        </p>
-
-        <p>
-            <label for="pr_number">PR Number</label>
-            <input type="text" name="pr_number"
-                   placeholder="PR Number" value="999999">
-            </input>
-        </p>
-        <p>
-        <label for="sr_comment">Comment</label>
-        <br>
-        <textarea name="sr_comment"
-                  placeholder="Comment"
-                  rows="15"
-                  cols="60"
-                  ></textarea>
-        </p>
-        <p>
-            <button type="submit">Submit</button>
-        </p>
-    </form>
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">新建SR</h5>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            <div class="mb-3">
+                <label for="sr_number" class="form-label">SR编号</label>
+                <input type="text" class="form-control" name="sr_number" id="sr_number" required>
+            </div>
+            <div class="mb-3">
+                <label for="sr_owner" class="form-label">负责人</label>
+                <input type="text" class="form-control" name="sr_owner" id="sr_owner" required>
+            </div>
+            <div class="mb-3">
+                <label for="pr_number" class="form-label">PR编号</label>
+                <input type="number" class="form-control" name="pr_number" id="pr_number">
+            </div>
+            <div class="mb-3">
+                <label for="sr_comment" class="form-label">备注</label>
+                <textarea class="form-control" name="sr_comment" id="sr_comment" rows="3"></textarea>
+            </div>
+            <div class="text-end">
+                <a href="{{ url_for('index') }}" class="btn btn-secondary">取消</a>
+                <button type="submit" class="btn btn-primary">提交</button>
+            </div>
+        </form>
+    </div>
+</div>
 {% endblock %}

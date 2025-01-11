@@ -1,0 +1,23 @@
+/* 设置页面背景色 */
+body {
+    background-color: #f8f9fa;
+}
+
+/* 表格样式 */
+.table {
+    background-color: white;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);  /* 添加阴影效果 */
+    border-radius: 8px;  /* 圆角边框 */
+}
+
+/* 卡片样式 */
+.card {
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);  /* 添加阴影效果 */
+    border-radius: 8px;  /* 圆角边框 */
+    margin-bottom: 20px;  /* 底部间距 */
+}
+
+/* 操作按钮样式 */
+.btn-action {
+    margin: 0 2px;  /* 按钮之间的间距 */
+} 

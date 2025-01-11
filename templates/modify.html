@@ -1,27 +1,44 @@
 {% extends 'base.html' %}
 
+{% block title %}修改SR{% endblock %}
+
 {% block content %}
- 		<form action="{{ url_for('update')}}" method="post">
-		<h5>Update SR Details</h5>
-		{% for sr in sr %}
-		<div class="form-group">
-            <input class="form-control" type="hidden" name="id" placeholder="ID" value={{sr[0]}} >
-        </div>
-		<div class="form-group">
-            <input class="form-control" type="text" name="sr" placeholder="SR" value={{sr[1]}}>
-        </div>
-		<div class="form-group">
-            <input class="form-control" type="text" name="owner" placeholder="Owner" value={{sr[2]}}>
-        </div>
-		<div class="form-group">
-            <input class="form-control" type="text" name="pr" placeholder="PR" value={{sr[3]}}>
-        </div>
-		<div class="form-group">
-            <input class="form-control" type="text" name="comment" placeholder="Comment" value={{sr[4]}}>
-        </div>
-		<div class="form-group">
-			<button class="btn btn-primary">Submit</button>
-		</div>
-		{% endfor %}
-		</form>
+<div class="card">
+    <!-- 卡片头部 -->
+    <div class="card-header">
+        <h5 class="mb-0">修改SR</h5>
+    </div>
+    <!-- 卡片内容：修改表单 -->
+    <div class="card-body">
+        <form method="post" action="{{ url_for('update') }}">
+            <!-- 隐藏的ID字段 -->
+            <input type="hidden" name="id" value="{{ sr[0]['id'] }}">
+            <!-- SR编号输入框 -->
+            <div class="mb-3">
+                <label for="sr" class="form-label">SR编号</label>
+                <input type="text" class="form-control" name="sr" id="sr" value="{{ sr[0]['sr'] }}" required>
+            </div>
+            <!-- 负责人输入框 -->
+            <div class="mb-3">
+                <label for="owner" class="form-label">负责人</label>
+                <input type="text" class="form-control" name="owner" id="owner" value="{{ sr[0]['owner'] }}" required>
+            </div>
+            <!-- PR编号输入框 -->
+            <div class="mb-3">
+                <label for="pr" class="form-label">PR编号</label>
+                <input type="number" class="form-control" name="pr" id="pr" value="{{ sr[0]['pr'] }}" required>
+            </div>
+            <!-- 备注文本框 -->
+            <div class="mb-3">
+                <label for="comment" class="form-label">备注</label>
+                <textarea class="form-control" name="comment" id="comment" rows="3">{{ sr[0]['comment'] }}</textarea>
+            </div>
+            <!-- 按钮组 -->
+            <div class="text-end">
+                <a href="{{ url_for('index') }}" class="btn btn-secondary">取消</a>
+                <button type="submit" class="btn btn-primary">更新</button>
+            </div>
+        </form>
+    </div>
+</div>
 {% endblock %}

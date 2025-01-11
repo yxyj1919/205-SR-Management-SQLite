@@ -1,67 +1,61 @@
-import os
-import psycopg2
+import sqlite3
+from datetime import datetime
 
-#DB=password
-#DB_USERNAME=postgress
-#DB_NAME=sr_db
-#DB_SERVER=postgres
-
-class PreCheckDB():
-    def __init__(self, conn=None):
+class PreCheckDB:
+    def __init__(self, conn):
+        """
+        初始化数据库检查类
+        参数:
+            conn: 数据库连接对象
+        """
         self.conn = conn
+
     def check(self):
-        if self.conn is None:
-            self.conn = psycopg2.connect(
-                    host="10.117.203.153",
-                    port="9004",
-                    database="sr_db",
-                    #user=os.environ['DB_USERNAME'],
-                    #password=os.environ['DB_PASSWORD']
-                    user = os.getenv('DB_USERNAME'),
-                    password = os.getenv('DB_PASSWORD')
-                    #user="postgres",
-                    #password="password"
-                    )
-
-        # Open a cursor to perform database operations
-        cur = self.conn.cursor()
-
-        # Check if the table is existed
-        # https://www.programcreek.com/python/?CodeExample=check%20table%20exists
-        cur.execute("SELECT COUNT(*) FROM pg_class WHERE relname='srtable';")
-        ret = bool(cur.fetchone()[0])
-        #print(ret)
-        if ret :
-            print('The Table is existed')
-        else:
-            print('The Table is not existed, and will create one')
-            # Execute a command: this creates a new table
-            print('Creating the table')
-            cur.execute('DROP TABLE IF EXISTS srtable;')
-            cur.execute('CREATE TABLE srtable (id serial PRIMARY KEY,'
-                                         'sr text NOT NULL, '
-                                         'owner varchar (150) NOT NULL,'
-                                         'pr integer DEFAULT 999999,'
-                                         'comment text,'
-                                         'date_added date DEFAULT CURRENT_TIMESTAMP);'
-                                         )
-            # Insert data into the table
-            print('Inserting data...')
-            cur.execute('INSERT INTO srtable (sr, owner, comment)'
-                    'VALUES (%s, %s, %s)',
-                    ('23452847208',
-                     'Dan HU',
-                     '虚机恢复快照提示文件被锁定')
-                    )
-            cur.execute('INSERT INTO srtable (sr, owner, pr, comment)'
-                    'VALUES (%s, %s, %s, %s)',
-                    ('23453280308',
-                     'Chang WANG',
-                     '222222',
-                     'SST-PP Issue')
-                    )
+        """检查并初始化数据库"""
+        try:
+            cur = self.conn.cursor()
+            
+            # 创建表
+            cur.execute('''
+                CREATE TABLE IF NOT EXISTS srtable (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    sr TEXT NOT NULL,
+                    owner TEXT NOT NULL,
+                    pr INTEGER,
+                    comment TEXT,
+                    create_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+            ''')
+            
+            # 检查是否已有数据
+            cur.execute('SELECT COUNT(*) FROM srtable')
+            count = cur.fetchone()[0]
+            
+            # 如果表是空的，插入测试数据
+            if count == 0:
+                print('插入测试数据...')
+                test_data = [
+                    ('24012345678', '张工', 234567, 'Kubernetes集群扩容失败'),
+                    ('24023456789', '李工', 345678, 'Docker容器无法启动'),
+                    ('24034567890', '王工', 456789, '数据库备份异常'),
+                    ('24045678901', '陈工', 567890, 'Jenkins构建失败'),
+                    ('24056789012', '刘工', 678901, '网络连接超时'),
+                    ('24067890123', '赵工', 789012, '日志系统异常'),
+                    ('24078901234', '孙工', 890123, '内存使用率过高'),
+                    ('24089012345', '周工', 901234, 'CPU负载异常'),
+                ]
+                
+                cur.executemany('''
+                    INSERT INTO srtable (sr, owner, pr, comment)
+                    VALUES (?, ?, ?, ?)
+                ''', test_data)
+                
+                print(f'成功插入{len(test_data)}条测试数据')
+            
             self.conn.commit()
-            print('The table has been created')
-
             cur.close()
             self.conn.close()
+            
+        except sqlite3.Error as e:
+            print(f"数据库初始化错误: {e}")
+            raise

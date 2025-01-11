@@ -1,28 +1,44 @@
-import os
-import psycopg2
+# 导入必要的模块
+import sqlite3
 from flask import Flask, render_template, request, url_for, redirect
 from init_db import PreCheckDB
+from datetime import datetime
+import os
+from config import Config
 
 app = Flask(__name__)
 
 def get_db_connection():
+    """
+    创建数据库连接
+    返回: sqlite3连接对象，配置为可通过列名访问数据
+    """
     try:
-        conn = psycopg2.connect(
-            host=os.getenv('DB_SERVER'),
-            port=os.getenv('DB_PORT'),
-            database=os.getenv('DB_NAME'),
-            user=os.getenv('DB_USERNAME'),
-            password=os.getenv('DB_PASSWORD')
-        )
+        # 确保数据库目录存在
+        os.makedirs(Config.DATABASE_DIR, exist_ok=True)
+        
+        # 使用完整的数据库路径
+        conn = sqlite3.connect(Config.DATABASE_PATH)
+        conn.row_factory = sqlite3.Row
         return conn
-    except psycopg2.Error as e:
+    except sqlite3.Error as e:
         print(f"数据库连接错误: {e}")
         raise
 
-PreCheckDB(get_db_connection()).check()
+# 初始化数据库
+def init_db():
+    """初始化数据库"""
+    PreCheckDB(get_db_connection()).check()
+
+# 确保在应用启动时初始化数据库
+init_db()
 
 @app.route('/')
 def index():
+    """
+    首页路由
+    显示所有SR记录的列表
+    """
     conn = get_db_connection()
     cur = conn.cursor()
     cur.execute('SELECT * FROM srtable;')
@@ -33,17 +49,27 @@ def index():
 
 @app.route('/create/', methods=('GET', 'POST'))
 def create():
+    """
+    创建新SR记录的路由
+    GET: 显示创建表单
+    POST: 处理表单提交，创建新记录
+    """
     if request.method == 'POST':
+        # 获取表单数据
         sr_number = request.form['sr_number']
         sr_owner = request.form['sr_owner']
-        pr_number = int(request.form['pr_number'])
+        # 处理PR可能为空的情况
+        pr_number = request.form['pr_number']
+        pr_number = int(pr_number) if pr_number else None
         sr_comment = request.form['sr_comment']
 
+        # 插入数据库
         conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute('INSERT INTO srtable (sr, owner, pr, comment)'
-                    'VALUES (%s, %s, %s, %s)',
-                    (sr_number, sr_owner, pr_number, sr_comment))
+        cur.execute('''
+            INSERT INTO srtable (sr, owner, pr, comment)
+            VALUES (?, ?, ?, ?)''',
+            (sr_number, sr_owner, pr_number, sr_comment))
         conn.commit()
         cur.close()
         conn.close()
@@ -52,10 +78,15 @@ def create():
 
 @app.route("/delete/<int:id>")
 def delete(id):
+    """
+    删除SR记录的路由
+    参数:
+        id: 要删除的记录ID
+    """
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute("DELETE from srtable where id=%s", (id,))
+                cur.execute("DELETE from srtable where id=?", (id,))
                 conn.commit()
         return redirect(url_for('index'))
     except Exception as e:
@@ -64,39 +95,55 @@ def delete(id):
 
 @app.route("/modify/<int:id>")
 def modify(id):
+    """
+    修改SR记录的路由 - 显示修改表单
+    参数:
+        id: 要修改的记录ID
+    """
     conn = get_db_connection()
     cur = conn.cursor()
-    # select row from booklist table for bookid passed from list page
-    cur.execute("SELECT * FROM srtable where id="+str(id))
+    cur.execute("SELECT * FROM srtable WHERE id = ?", (id,))
     sr = cur.fetchall()
-    #display data in modify page passing the tuple as parameter in render_template method
-    return render_template("modify.html",sr=sr )
+    return render_template("modify.html", sr=sr)
 
 @app.route("/update", methods=["POST"])
 def update():
-    #store values recieved from HTML form in local variables
-    id=request.form.get("id")
-    sr=request.form.get("sr")
-    owner=request.form.get("owner")
-    pr=request.form.get("pr")
-    comment=request.form.get("comment")
-    #create string update query with the values from form
+    """
+    更新SR记录的路由 - 处理修改表单的提交
+    """
+    # 获取表单数据
+    id = request.form.get("id")
+    sr = request.form.get("sr")
+    owner = request.form.get("owner")
+    # 处理PR可能为空的情况
+    pr = request.form.get("pr")
+    pr = int(pr) if pr else None
+    comment = request.form.get("comment")
+    
+    # 更新数据库
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("update srtable set sr='"+sr+"', owner='"+owner+"',pr='"+pr+"', comment='" +comment+ "' where id="+str(id))
-    #Execute update query
-    #cur.execute(strSQl)
-    #commit to database
+    cur.execute("""
+        UPDATE srtable 
+        SET sr = ?, owner = ?, pr = ?, comment = ? 
+        WHERE id = ?""", 
+        (sr, owner, pr, comment, id))
     conn.commit()
     cur.close()
     conn.close()
     return redirect(url_for('index'))
-# https://csveda.com/postgresql-flask-web-application-modify-and-delete-table-data/
 
 @app.route('/about')
 def about():
-    return render_template('about.html',)
+    """关于页面路由"""
+    return render_template('about.html')
 
+@app.template_filter('datetime')
+def format_datetime(value, format='%Y-%m-%d %H:%M:%S'):
+    """格式化日期时间"""
+    if value is None:
+        return ""
+    return datetime.strptime(value, '%Y-%m-%d %H:%M:%S').strftime(format)
 
 if __name__ == "__main__":
     app.run(debug=True, use_reloader=False)

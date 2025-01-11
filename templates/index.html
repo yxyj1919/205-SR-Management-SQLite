@@ -1,33 +1,45 @@
 {% extends 'base.html' %}
 
-{% block content %}
-    <h2>{% block title %} SR List {% endblock %}</h2>
-<body>
-        <table border="1">
-          <tr>
-            <th scope="col">#</th>
-            <th scope="col">SR Number </th>
-            <th scope="col">TSE</th>
-            <th scope="col">PR Number</th>
-            <th scope="col">Comment</th>
-            <th scope="col">Date</th>
-     	    <th scope="col">Action</th>
-          </tr>
-            {% for sr in srs %}
-              <tr>
-                <td>{{ sr[0] }}</td>
-                <td>{{ sr[1] }}</td>
-                <td>{{ sr[2] }}</td>
-                <td>{{ sr[3] }}</td>
-                <td>{{ sr[4] }}</td>
-                <td>{{ sr[5] }}</td>
-                <td>
-                    <b><a href="{{ url_for('modify', id=sr[0]) }}">Modify</a></b>
-                    <b><a href="{{ url_for('delete', id=sr[0]) }}">Delete</a></b>
-                </td>
-              </tr>
-            {% endfor %}
-        </table>
+{% block title %}首页{% endblock %}
 
-</body>
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">SR列表</h5>
+        <a href="{{ url_for('create') }}" class="btn btn-primary">新建SR</a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>SR编号</th>
+                        <th>负责人</th>
+                        <th>PR编号</th>
+                        <th>备注</th>
+                        <th>创建日期</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sr in srs %}
+                    <tr>
+                        <td>{{ sr['id'] }}</td>
+                        <td>{{ sr['sr'] }}</td>
+                        <td>{{ sr['owner'] }}</td>
+                        <td>{{ sr['pr'] if sr['pr'] else '-' }}</td>
+                        <td>{{ sr['comment'] }}</td>
+                        <td>{{ sr['create_date'] }}</td>
+                        <td>
+                            <a href="{{ url_for('modify', id=sr['id']) }}" class="btn btn-sm btn-warning btn-action">编辑</a>
+                            <a href="{{ url_for('delete', id=sr['id']) }}" class="btn btn-sm btn-danger btn-action" onclick="return confirm('确定要删除吗？')">删除</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 {% endblock %}
