@@ -19,24 +19,23 @@
 ## 安装和运行
 
 1. 克隆仓库
-\`\`\`bash
+```bash
 git clone https://github.com/你的用户名/仓库名.git
 cd 仓库名
-\`\`\`
+```
 
 2. 安装依赖
-\`\`\`bash
+```bash
 pip install -r requirements.txt
-\`\`\`
+```
 
 3. 运行应用
-\`\`\`bash
+```bash
 python app.py
-\`\`\`
+```
 
 ## 项目结构
-
-\`\`\`
+```
 project_root/
 ├── app.py              # 主应用文件
 ├── config.py           # 配置文件
@@ -48,7 +47,7 @@ project_root/
     ├── base.html
     ├── create.html
     └── index.html
-\`\`\`
+\\\
 
 ## License
 
