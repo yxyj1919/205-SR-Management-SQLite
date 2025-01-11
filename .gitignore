@@ -9,3 +9,5 @@ venv/
 *.db
 data/
 .DS_Store
+.idea
+.venv
