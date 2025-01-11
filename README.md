@@ -1,5 +1,5 @@
 # SR Management System
-
+![](https://yxyj1919-imagebed.oss-cn-beijing.aliyuncs.com/rocket-image/202501111529063.png)
 一个基于Flask和SQLite的SR（Service Request）管理系统。
 
 ## 功能特点
