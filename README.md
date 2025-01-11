@@ -47,7 +47,7 @@ project_root/
     ├── base.html
     ├── create.html
     └── index.html
-\\\
+```
 
 ## License
 
