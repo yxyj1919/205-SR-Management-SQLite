@@ -31,6 +31,8 @@ pip install -r requirements.txt
 3. 运行应用
 ```bash
 python app.py
+如果端口被占用
+python app.py --port=5001
 ```
 
 ## 项目结构
